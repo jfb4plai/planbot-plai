@@ -69,6 +69,14 @@ export default function Phase2({
     return settings.tlDurationS * 1000;
   }, [settings.tlMode, settings.tlDurationS]);
 
+  // En mode aléatoire, le rouge dure 0.5–2.5 s (imprévisible) ; sinon 700 ms fixe
+  const getRedDuration = useCallback((): number => {
+    if (settings.tlMode === 'random') {
+      return 500 + Math.floor(Math.random() * 2000);
+    }
+    return 700;
+  }, [settings.tlMode]);
+
   const handleExpiry = useCallback(() => {
     if (doneRef.current) return;
     if (settings.sound) playBad();
@@ -85,8 +93,8 @@ export default function Phase2({
         setLight('green');
         timerRef.current = setTimeout(handleExpiry, getGreenDuration());
       }, 400);
-    }, 700);
-  }, [settings.sound, getGreenDuration]);
+    }, getRedDuration());
+  }, [settings.sound, getGreenDuration, getRedDuration]);
 
   const startCycle = useCallback(() => {
     if (doneRef.current) return;
@@ -101,8 +109,8 @@ export default function Phase2({
         setLight('green');
         timerRef.current = setTimeout(handleExpiry, getGreenDuration());
       }, 400);
-    }, 700);
-  }, [handleExpiry, getGreenDuration]);
+    }, getRedDuration());
+  }, [handleExpiry, getGreenDuration, getRedDuration]);
 
   // Init
   useEffect(() => {
@@ -146,7 +154,7 @@ export default function Phase2({
           setLight('green');
           timerRef.current = setTimeout(handleExpiry, getGreenDuration());
         }, 400);
-      }, 700);
+      }, getRedDuration());
     }
   }
 
