@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
 import type { Command, GamePhase, LevelConfig, Phase2Result, PlayerSettings, SimStep } from './types';
 import { GROUP_LEVEL_CONFIGS } from './types';
 import { pickGroupGrid } from './grids';
 import type { GridDef } from './types';
 import { supabase } from '../../lib/supabaseClient';
+import AuthStep from './AuthStep';
 import ProfileStep from './ProfileStep';
 import Phase1 from './Phase1';
 import Phase2 from './Phase2';
@@ -12,6 +14,9 @@ import Dashboard from './Dashboard';
 const PORTAIL_URL = 'https://portail-plai.vercel.app';
 
 export default function PlanBotPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+
   const [phase, setPhase] = useState<GamePhase>('profile');
   const [settings, setSettings] = useState<PlayerSettings | null>(null);
   const [grid, setGrid] = useState<GridDef | null>(null);
@@ -23,6 +28,23 @@ export default function PlanBotPage() {
   const [planningTries, setPlanningTries] = useState(0);
   const [lastSessionId, setLastSessionId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Auth state
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+      setAuthReady(true);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    quit();
+  }
 
   function startGame(s: PlayerSettings) {
     const baseConfig = GROUP_LEVEL_CONFIGS[s.ageGroup][s.startLevel - 1];
@@ -44,12 +66,13 @@ export default function PlanBotPage() {
   }
 
   async function handlePhase2Done(result: Phase2Result) {
-    if (!settings) return;
+    if (!settings || !user) return;
 
     setPhase('complete');
     setSaveError(null);
 
     const { data, error } = await supabase.from('planbot_sessions').insert({
+      user_id: user.id,
       player_name: settings.playerName,
       age_group: settings.ageGroup,
       level,
@@ -82,6 +105,24 @@ export default function PlanBotPage() {
     setSaveError(null);
   }
 
+  // Attente initialisation auth
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center">
+        <p className="text-sm text-gray-400">Chargement…</p>
+      </div>
+    );
+  }
+
+  // Non connecté → AuthStep
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
+        <AuthStep onAuth={() => {}} />
+      </div>
+    );
+  }
+
   if (phase === 'dashboard') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
@@ -97,12 +138,23 @@ export default function PlanBotPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
       {/* Breadcrumb */}
       <div className="px-4 py-3 border-b border-indigo-100 bg-white/70 backdrop-blur">
-        <div className="max-w-xl mx-auto flex items-center gap-2 text-sm">
-          <a href={PORTAIL_URL} className="text-indigo-500 hover:text-indigo-700 font-medium">
-            Portail PLAI
-          </a>
-          <span className="text-gray-300">/</span>
-          <span className="text-gray-700 font-semibold">🤖 PlanBot</span>
+        <div className="max-w-xl mx-auto flex items-center justify-between gap-2 text-sm">
+          <div className="flex items-center gap-2">
+            <a href={PORTAIL_URL} className="text-indigo-500 hover:text-indigo-700 font-medium">
+              Portail PLAI
+            </a>
+            <span className="text-gray-300">/</span>
+            <span className="text-gray-700 font-semibold">🤖 PlanBot</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400 hidden sm:block">{user.email}</span>
+            <button
+              onClick={handleSignOut}
+              className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
       </div>
 
