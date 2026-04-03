@@ -48,10 +48,11 @@ export default function PlanBotPage() {
 
   function startGame(s: PlayerSettings) {
     const baseConfig = GROUP_LEVEL_CONFIGS[s.ageGroup][s.startLevel - 1];
+    const effectiveMaxCmds = s.overrideMaxCmds !== null ? s.overrideMaxCmds : baseConfig.maxCmds;
     setSettings(s);
     setLevel(s.startLevel);
     setConfig(baseConfig);
-    setGrid(pickGroupGrid(s.ageGroup, s.startLevel));
+    setGrid(pickGroupGrid(s.ageGroup, s.startLevel, effectiveMaxCmds, baseConfig.keyCount, s.maxRepConsecutive));
     setScoreAfterP1(0);
     setPlanningTries(0);
     setPhase('phase1');

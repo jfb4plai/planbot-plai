@@ -3,6 +3,7 @@
 // Toutes les solutions ont été vérifiées.
 
 import type { AgeGroup, CellType, GridDef } from './types';
+import { hasValidSolution } from './pathValidator';
 
 function build(
   size: number,
@@ -194,7 +195,39 @@ export const GROUP_GRIDS: Record<AgeGroup, GridDef[][]> = {
   '11-13': [g11_L1, g11_L2, g11_L3, g11_L4, g11_L5, g11_L6],
 };
 
-export function pickGroupGrid(ageGroup: AgeGroup, level: number): GridDef {
+export function pickGroupGrid(
+  ageGroup: AgeGroup,
+  level: number,
+  effectiveMaxCmds?: number | null,
+  keyCount?: number,
+  maxRepConsecutive?: number,
+): GridDef {
   const pool = GROUP_GRIDS[ageGroup][level - 1];
-  return pool[Math.floor(Math.random() * pool.length)];
+
+  // Si pas de contraintes actives, tirage libre
+  if (effectiveMaxCmds == null && !maxRepConsecutive) {
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  const maxCmds = effectiveMaxCmds ?? pool[0].size * pool[0].size * 2;
+  const keys = keyCount ?? 0;
+  const rep = maxRepConsecutive ?? 0;
+
+  const valid = pool.filter(g => hasValidSolution(g, maxCmds, keys, rep));
+  const chosen = valid.length > 0 ? valid : pool; // fallback si tout incompatible
+  return chosen[Math.floor(Math.random() * chosen.length)];
+}
+
+/** Vérifie si au moins une variante est jouable avec les contraintes données */
+export function hasAnyValidVariant(
+  ageGroup: AgeGroup,
+  level: number,
+  effectiveMaxCmds: number | null,
+  keyCount: number,
+  maxRepConsecutive: number,
+): boolean {
+  if (effectiveMaxCmds == null && maxRepConsecutive === 0) return true;
+  const pool = GROUP_GRIDS[ageGroup][level - 1];
+  const maxCmds = effectiveMaxCmds ?? pool[0].size * pool[0].size * 2;
+  return pool.some(g => hasValidSolution(g, maxCmds, keyCount, maxRepConsecutive));
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AgeGroup, LevelConfig, PlayerSettings, TLMode } from './types';
 import { DEFAULT_SETTINGS, GROUP_LEVEL_CONFIGS } from './types';
+import { hasAnyValidVariant } from './grids';
 
 const AGE_LABELS: Record<AgeGroup, string> = {
   '6': '6 ans',
@@ -43,6 +44,16 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
 
   const configs = GROUP_LEVEL_CONFIGS[s.ageGroup];
   const selectedConfig: LevelConfig = configs[s.startLevel - 1];
+
+  // Vérification de compatibilité plateau × contraintes
+  const effectiveMaxCmds = s.overrideMaxCmds !== null ? s.overrideMaxCmds : selectedConfig.maxCmds;
+  const isCompatible = hasAnyValidVariant(
+    s.ageGroup,
+    s.startLevel,
+    effectiveMaxCmds,
+    selectedConfig.keyCount,
+    s.maxRepConsecutive,
+  );
 
   // Override options per age group
   const maxCmdsOptions: { label: string; value: number | null }[] =
@@ -242,10 +253,22 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
           </div>
         </details>
 
+        {!isCompatible && (
+          <div className="rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-xs text-amber-800 space-y-1">
+            <p className="font-semibold">⚠️ Combinaison impossible</p>
+            <p>
+              Aucun plateau de ce niveau n'est jouable avec les contraintes actuelles
+              (max {effectiveMaxCmds ?? '∞'} commandes + max {s.maxRepConsecutive} identiques de suite).
+              Modifie le niveau ou les réglages thérapeute.
+            </p>
+          </div>
+        )}
+
         <div className="flex gap-3 pt-2">
           <button
             onClick={handleStart}
-            className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base transition"
+            disabled={!isCompatible}
+            className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Jouer →
           </button>
