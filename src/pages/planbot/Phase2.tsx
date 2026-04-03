@@ -93,8 +93,8 @@ export default function Phase2({
     lightRef.current = 'red';
     setLight('red');
     timerRef.current = setTimeout(() => {
-      // En mode aléatoire : 40 % de chance de passer directement au vert (sans orange)
-      if (settings.tlMode === 'random' && Math.random() < 0.4) {
+      // En mode aléatoire : 50 % de chance de passer directement au vert (sans orange)
+      if (settings.tlMode === 'random' && Math.random() < 0.5) {
         startGreen(handleExpiry);
       } else {
         lightRef.current = 'orange';
@@ -110,8 +110,8 @@ export default function Phase2({
     lightRef.current = 'red';
     setLight('red');
     timerRef.current = setTimeout(() => {
-      // En mode aléatoire : 40 % de chance de passer directement au vert (sans orange)
-      if (settings.tlMode === 'random' && Math.random() < 0.4) {
+      // En mode aléatoire : 50 % de chance de passer directement au vert (sans orange)
+      if (settings.tlMode === 'random' && Math.random() < 0.5) {
         startGreen(handleExpiry);
       } else {
         lightRef.current = 'orange';
@@ -156,7 +156,7 @@ export default function Phase2({
       lightRef.current = 'red';
       setLight('red');
       timerRef.current = setTimeout(() => {
-        if (settings.tlMode === 'random' && Math.random() < 0.4) {
+        if (settings.tlMode === 'random' && Math.random() < 0.5) {
           startGreen(handleExpiry);
         } else {
           lightRef.current = 'orange';
