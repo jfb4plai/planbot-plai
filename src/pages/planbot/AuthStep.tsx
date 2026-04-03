@@ -12,6 +12,7 @@ export default function AuthStep({ onAuth }: Props) {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,15 +66,26 @@ export default function AuthStep({ onAuth }: Props) {
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              required
-              className={inputCls}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              minLength={6}
-            />
+            <div className="relative">
+              <input
+                type={showPwd ? 'text' : 'password'}
+                required
+                className={`${inputCls} pr-10`}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                minLength={6}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd(v => !v)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                tabIndex={-1}
+                aria-label={showPwd ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           {error && (
