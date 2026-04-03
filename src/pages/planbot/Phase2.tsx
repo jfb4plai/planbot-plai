@@ -69,13 +69,20 @@ export default function Phase2({
     return settings.tlDurationS * 1000;
   }, [settings.tlMode, settings.tlDurationS]);
 
-  // En mode aléatoire, le rouge dure 0.5–2.5 s (imprévisible) ; sinon 700 ms fixe
+  // En mode aléatoire : rouge 0.5–2.5 s ; sinon 700 ms fixe
   const getRedDuration = useCallback((): number => {
     if (settings.tlMode === 'random') {
       return 500 + Math.floor(Math.random() * 2000);
     }
     return 700;
   }, [settings.tlMode]);
+
+  // Lance la phase verte (commune aux deux chemins du cycle aléatoire)
+  const startGreen = useCallback((onExpiry: () => void) => {
+    lightRef.current = 'green';
+    setLight('green');
+    timerRef.current = setTimeout(onExpiry, getGreenDuration());
+  }, [getGreenDuration]);
 
   const handleExpiry = useCallback(() => {
     if (doneRef.current) return;
@@ -86,15 +93,16 @@ export default function Phase2({
     lightRef.current = 'red';
     setLight('red');
     timerRef.current = setTimeout(() => {
-      lightRef.current = 'orange';
-      setLight('orange');
-      timerRef.current = setTimeout(() => {
-        lightRef.current = 'green';
-        setLight('green');
-        timerRef.current = setTimeout(handleExpiry, getGreenDuration());
-      }, 400);
+      // En mode aléatoire : 40 % de chance de passer directement au vert (sans orange)
+      if (settings.tlMode === 'random' && Math.random() < 0.4) {
+        startGreen(handleExpiry);
+      } else {
+        lightRef.current = 'orange';
+        setLight('orange');
+        timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+      }
     }, getRedDuration());
-  }, [settings.sound, getGreenDuration, getRedDuration]);
+  }, [settings.sound, settings.tlMode, startGreen, getRedDuration]);
 
   const startCycle = useCallback(() => {
     if (doneRef.current) return;
@@ -102,15 +110,16 @@ export default function Phase2({
     lightRef.current = 'red';
     setLight('red');
     timerRef.current = setTimeout(() => {
-      lightRef.current = 'orange';
-      setLight('orange');
-      timerRef.current = setTimeout(() => {
-        lightRef.current = 'green';
-        setLight('green');
-        timerRef.current = setTimeout(handleExpiry, getGreenDuration());
-      }, 400);
+      // En mode aléatoire : 40 % de chance de passer directement au vert (sans orange)
+      if (settings.tlMode === 'random' && Math.random() < 0.4) {
+        startGreen(handleExpiry);
+      } else {
+        lightRef.current = 'orange';
+        setLight('orange');
+        timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+      }
     }, getRedDuration());
-  }, [handleExpiry, getGreenDuration, getRedDuration]);
+  }, [handleExpiry, startGreen, getRedDuration, settings.tlMode]);
 
   // Init
   useEffect(() => {
@@ -147,13 +156,13 @@ export default function Phase2({
       lightRef.current = 'red';
       setLight('red');
       timerRef.current = setTimeout(() => {
-        lightRef.current = 'orange';
-        setLight('orange');
-        timerRef.current = setTimeout(() => {
-          lightRef.current = 'green';
-          setLight('green');
-          timerRef.current = setTimeout(handleExpiry, getGreenDuration());
-        }, 400);
+        if (settings.tlMode === 'random' && Math.random() < 0.4) {
+          startGreen(handleExpiry);
+        } else {
+          lightRef.current = 'orange';
+          setLight('orange');
+          timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+        }
       }, getRedDuration());
     }
   }
