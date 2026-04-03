@@ -45,8 +45,11 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
   const configs = GROUP_LEVEL_CONFIGS[s.ageGroup];
   const selectedConfig: LevelConfig = configs[s.startLevel - 1];
 
-  // Vérification de compatibilité plateau × contraintes
-  const effectiveMaxCmds = s.overrideMaxCmds !== null ? s.overrideMaxCmds : selectedConfig.maxCmds;
+  // effectiveMaxCmds : 0 = "Libre" (aucune limite), null = default niveau, number = override
+  const effectiveMaxCmds =
+    s.overrideMaxCmds === 0 ? null :
+    s.overrideMaxCmds !== null ? s.overrideMaxCmds :
+    selectedConfig.maxCmds;
   const isCompatible = hasAnyValidVariant(
     s.ageGroup,
     s.startLevel,
@@ -56,18 +59,19 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
   );
 
   // Override options per age group
+  // 0 = sentinelle pour "aucune limite de commandes"
   const maxCmdsOptions: { label: string; value: number | null }[] =
     s.ageGroup === '6'
       ? []
       : s.ageGroup === '7-10'
         ? [
-            { label: 'Libre', value: null },
+            { label: 'Libre (aucune limite)', value: 0 },
             { label: '10 max', value: 10 },
             { label: '8 max', value: 8 },
             { label: '6 max', value: 6 },
           ]
         : [
-            { label: 'Libre', value: null },
+            { label: 'Libre (aucune limite)', value: 0 },
             { label: '12 max', value: 12 },
             { label: '10 max', value: 10 },
             { label: '8 max', value: 8 },

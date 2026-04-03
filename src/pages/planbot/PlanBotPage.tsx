@@ -48,7 +48,11 @@ export default function PlanBotPage() {
 
   function startGame(s: PlayerSettings) {
     const baseConfig = GROUP_LEVEL_CONFIGS[s.ageGroup][s.startLevel - 1];
-    const effectiveMaxCmds = s.overrideMaxCmds !== null ? s.overrideMaxCmds : baseConfig.maxCmds;
+    // 0 = sentinelle "Libre" (aucune limite), null = utiliser défaut du niveau
+    const effectiveMaxCmds =
+      s.overrideMaxCmds === 0 ? null :
+      s.overrideMaxCmds !== null ? s.overrideMaxCmds :
+      baseConfig.maxCmds;
     setSettings(s);
     setLevel(s.startLevel);
     setConfig(baseConfig);

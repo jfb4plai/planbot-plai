@@ -43,9 +43,11 @@ export default function Phase1({
   const [tries, setTries] = useState(planningTries);
   const [score, setScore] = useState(initialScore);
 
-  // Apply overrideMaxCmds from therapist settings
+  // 0 = sentinelle "Libre" (aucune limite), null = défaut niveau
   const effectiveMaxCmds: number | null =
-    settings.overrideMaxCmds !== null ? settings.overrideMaxCmds : config.maxCmds;
+    settings.overrideMaxCmds === 0 ? null :
+    settings.overrideMaxCmds !== null ? settings.overrideMaxCmds :
+    config.maxCmds;
 
   const cellSize = grid.size === 3 ? 80 : grid.size === 5 ? 56 : 68;
 
