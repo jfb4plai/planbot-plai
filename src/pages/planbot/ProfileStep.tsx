@@ -22,6 +22,14 @@ type Props = {
   onDashboard: () => void;
 };
 
+// Répétitions consécutives : options fixes
+const REP_OPTIONS = [
+  { label: 'Libre', value: 0 },
+  { label: 'Max 1 de suite', value: 1 },
+  { label: 'Max 2 de suite', value: 2 },
+  { label: 'Max 3 de suite', value: 3 },
+];
+
 export default function ProfileStep({ onStart, onDashboard }: Props) {
   const [s, setS] = useState<PlayerSettings>(DEFAULT_SETTINGS);
   const [error, setError] = useState('');
@@ -45,37 +53,52 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
   const configs = GROUP_LEVEL_CONFIGS[s.ageGroup];
   const selectedConfig: LevelConfig = configs[s.startLevel - 1];
 
-  // effectiveMaxCmds : 0 = "Libre" (aucune limite), null = default niveau, number = override
+  // effectiveMaxCmds : 0 = "Sans limite", null = défaut niveau, number = override
   const effectiveMaxCmds =
     s.overrideMaxCmds === 0 ? null :
     s.overrideMaxCmds !== null ? s.overrideMaxCmds :
     selectedConfig.maxCmds;
-  const isCompatible = hasAnyValidVariant(
-    s.ageGroup,
-    s.startLevel,
-    effectiveMaxCmds,
-    selectedConfig.keyCount,
-    s.maxRepConsecutive,
-  );
 
-  // Override options per age group
-  // 0 = sentinelle pour "aucune limite de commandes"
+  // Convertit la valeur d'une option maxCmds en effectiveMaxCmds pour le BFS
+  function toEffectiveMax(value: number | null): number | null {
+    if (value === 0) return null;
+    if (value === null) return selectedConfig.maxCmds;
+    return value;
+  }
+
+  // Options max commandes : "Par défaut" (null) + "Sans limite" (0) + valeurs spécifiques
   const maxCmdsOptions: { label: string; value: number | null }[] =
     s.ageGroup === '6'
       ? []
       : s.ageGroup === '7-10'
         ? [
-            { label: 'Libre (aucune limite)', value: 0 },
+            { label: selectedConfig.maxCmds !== null ? `Par défaut (≤ ${selectedConfig.maxCmds})` : 'Par défaut', value: null },
+            { label: 'Sans limite', value: 0 },
             { label: '10 max', value: 10 },
             { label: '8 max', value: 8 },
             { label: '6 max', value: 6 },
           ]
         : [
-            { label: 'Libre (aucune limite)', value: 0 },
+            { label: selectedConfig.maxCmds !== null ? `Par défaut (≤ ${selectedConfig.maxCmds})` : 'Par défaut', value: null },
+            { label: 'Sans limite', value: 0 },
             { label: '12 max', value: 12 },
             { label: '10 max', value: 10 },
             { label: '8 max', value: 8 },
           ];
+
+  // ── Filtrage cascade ──────────────────────────────────────────────────────
+  // Pour chaque option maxCmds : compatible avec le maxRepConsecutive actuel ?
+  const maxCmdsCompat = maxCmdsOptions.map(opt =>
+    hasAnyValidVariant(s.ageGroup, s.startLevel, toEffectiveMax(opt.value), selectedConfig.keyCount, s.maxRepConsecutive)
+  );
+
+  // Pour chaque option répétition : compatible avec le effectiveMaxCmds actuel ?
+  const repCompat = REP_OPTIONS.map(opt =>
+    hasAnyValidVariant(s.ageGroup, s.startLevel, effectiveMaxCmds, selectedConfig.keyCount, opt.value)
+  );
+
+  const isCompatible = hasAnyValidVariant(s.ageGroup, s.startLevel, effectiveMaxCmds, selectedConfig.keyCount, s.maxRepConsecutive);
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8">
@@ -173,40 +196,62 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
           </summary>
           <div className="mt-4 space-y-4 pl-1">
 
-            {/* Max commandes (override, selon groupe) */}
+            {/* Max commandes — avec filtrage cascade */}
             {maxCmdsOptions.length > 0 && (
               <div>
-                <label className={labelCls}>Max commandes (remplace la limite du niveau)</label>
+                <label className={labelCls}>Max commandes</label>
                 <div className="flex flex-wrap gap-2">
-                  {maxCmdsOptions.map(opt => (
-                    <button
-                      key={String(opt.value)}
-                      onClick={() => set('overrideMaxCmds', opt.value)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
-                        s.overrideMaxCmds === opt.value
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                  {maxCmdsOptions.map((opt, i) => {
+                    const isSelected = s.overrideMaxCmds === opt.value;
+                    const compat = maxCmdsCompat[i];
+                    return (
+                      <button
+                        key={String(opt.value)}
+                        onClick={() => { if (compat || isSelected) set('overrideMaxCmds', opt.value); }}
+                        disabled={!compat && !isSelected}
+                        title={!compat ? 'Impossible avec la contrainte de répétition sélectionnée' : ''}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                          isSelected
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : !compat
+                              ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
+                              : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
+            {/* Répétitions consécutives — avec filtrage cascade — sous forme de boutons */}
             <div>
               <label className={labelCls}>Répétitions consécutives autorisées</label>
-              <select
-                className={inputCls}
-                value={s.maxRepConsecutive}
-                onChange={e => set('maxRepConsecutive', Number(e.target.value))}
-              >
-                <option value={0}>Libre (pas de restriction)</option>
-                <option value={1}>Max 1 identique de suite</option>
-                <option value={2}>Max 2 identiques de suite</option>
-                <option value={3}>Max 3 identiques de suite</option>
-              </select>
+              <div className="flex flex-wrap gap-2">
+                {REP_OPTIONS.map((opt, i) => {
+                  const isSelected = s.maxRepConsecutive === opt.value;
+                  const compat = repCompat[i];
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => { if (compat || isSelected) set('maxRepConsecutive', opt.value); }}
+                      disabled={!compat && !isSelected}
+                      title={!compat ? 'Impossible avec la limite de commandes sélectionnée' : ''}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : !compat
+                            ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div>
@@ -261,8 +306,7 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
           <div className="rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-xs text-amber-800 space-y-1">
             <p className="font-semibold">⚠️ Combinaison impossible</p>
             <p>
-              Aucun plateau de ce niveau n'est jouable avec les contraintes actuelles
-              (max {effectiveMaxCmds ?? '∞'} commandes + max {s.maxRepConsecutive} identiques de suite).
+              Aucun plateau de ce niveau n'est jouable avec les contraintes actuelles.
               Modifie le niveau ou les réglages thérapeute.
             </p>
           </div>
