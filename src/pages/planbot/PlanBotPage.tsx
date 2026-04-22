@@ -56,7 +56,7 @@ export default function PlanBotPage() {
     setSettings(s);
     setLevel(s.startLevel);
     setConfig(baseConfig);
-    setGrid(pickGroupGrid(s.ageGroup, s.startLevel, effectiveMaxCmds, baseConfig.keyCount, s.maxRepConsecutive));
+    setGrid(pickGroupGrid(s.ageGroup, s.startLevel, effectiveMaxCmds, baseConfig.keyCount, s.maxRepConsecutive, s.disabledDirection));
     setScoreAfterP1(0);
     setPlanningTries(0);
     setPhase('phase1');

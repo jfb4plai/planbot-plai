@@ -68,7 +68,8 @@ export type PlayerSettings = {
   planningTimerS: number;    // durée fixe (s), 15–120
   planningTimerMinS: number; // borne min aléatoire (s), 10–60
   planningTimerMaxS: number; // borne max aléatoire (s), 20–120
-  memorizeS: number | null;  // null = grille toujours visible ; number = masquage après X s
+  memorizeS: number | null;      // null = grille toujours visible ; number = masquage après X s
+  disabledDirection: Command | null; // null = toutes directions actives
   sound: boolean;
 };
 
@@ -86,6 +87,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   planningTimerMinS: 20,
   planningTimerMaxS: 60,
   memorizeS: null,
+  disabledDirection: null,
   sound: true,
 };
 

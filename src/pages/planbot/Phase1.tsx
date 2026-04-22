@@ -189,6 +189,11 @@ export default function Phase1({
             Max {settings.maxRepConsecutive}× même direction
           </span>
         )}
+        {settings.disabledDirection !== null && (
+          <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 font-semibold">
+            🚫 {CMD_ARROW[settings.disabledDirection]} désactivé
+          </span>
+        )}
         {settings.memorizeS !== null && (
           gridRevealed
             ? <span className={`px-2 py-1 rounded-full font-semibold ${
@@ -302,6 +307,9 @@ function CmdBtn({
   commands: Command[];
   settings: PlayerSettings;
 }) {
+  if (cmd === settings.disabledDirection) {
+    return <div className="w-full aspect-square" />;
+  }
   const disabled = cmdFull || wouldViolateRepLimit(commands, cmd, settings.maxRepConsecutive);
   return (
     <button

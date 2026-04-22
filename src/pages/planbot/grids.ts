@@ -2,7 +2,7 @@
 // 3 tranches d'âge × 6 niveaux × 2 variantes = 36 grilles.
 // Toutes les solutions ont été vérifiées.
 
-import type { AgeGroup, CellType, GridDef } from './types';
+import type { AgeGroup, CellType, Command, GridDef } from './types';
 import { hasValidSolution } from './pathValidator';
 
 function build(
@@ -201,11 +201,12 @@ export function pickGroupGrid(
   effectiveMaxCmds?: number | null,
   keyCount?: number,
   maxRepConsecutive?: number,
+  disabledCmd?: Command | null,
 ): GridDef {
   const pool = GROUP_GRIDS[ageGroup][level - 1];
 
   // Si pas de contraintes actives, tirage libre
-  if (effectiveMaxCmds == null && !maxRepConsecutive) {
+  if (effectiveMaxCmds == null && !maxRepConsecutive && !disabledCmd) {
     return pool[Math.floor(Math.random() * pool.length)];
   }
 
@@ -213,7 +214,7 @@ export function pickGroupGrid(
   const keys = keyCount ?? 0;
   const rep = maxRepConsecutive ?? 0;
 
-  const valid = pool.filter(g => hasValidSolution(g, maxCmds, keys, rep));
+  const valid = pool.filter(g => hasValidSolution(g, maxCmds, keys, rep, disabledCmd ?? null));
   const chosen = valid.length > 0 ? valid : pool; // fallback si tout incompatible
   return chosen[Math.floor(Math.random() * chosen.length)];
 }
@@ -225,9 +226,10 @@ export function hasAnyValidVariant(
   effectiveMaxCmds: number | null,
   keyCount: number,
   maxRepConsecutive: number,
+  disabledCmd: Command | null = null,
 ): boolean {
-  if (effectiveMaxCmds == null && maxRepConsecutive === 0) return true;
+  if (effectiveMaxCmds == null && maxRepConsecutive === 0 && disabledCmd === null) return true;
   const pool = GROUP_GRIDS[ageGroup][level - 1];
   const maxCmds = effectiveMaxCmds ?? pool[0].size * pool[0].size * 2;
-  return pool.some(g => hasValidSolution(g, maxCmds, keyCount, maxRepConsecutive));
+  return pool.some(g => hasValidSolution(g, maxCmds, keyCount, maxRepConsecutive, disabledCmd));
 }

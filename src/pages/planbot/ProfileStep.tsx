@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { AgeGroup, LevelConfig, PlayerSettings, TLMode } from './types';
-import { DEFAULT_SETTINGS, GROUP_LEVEL_CONFIGS } from './types';
+import type { AgeGroup, Command, LevelConfig, PlayerSettings, TLMode } from './types';
+import { CMD_ARROW, DEFAULT_SETTINGS, GROUP_LEVEL_CONFIGS } from './types';
 import { hasAnyValidVariant } from './grids';
 
 const AGE_LABELS: Record<AgeGroup, string> = {
@@ -373,6 +373,37 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
                   <p className="text-xs text-gray-400">Durée tirée aléatoirement entre {s.planningTimerMinS} s et {s.planningTimerMaxS} s à chaque essai</p>
                 </div>
               )}
+            </div>
+
+            {/* Direction désactivée */}
+            <div>
+              <label className={labelCls}>Direction désactivée</label>
+              <div className="flex gap-2">
+                {([null, 'U', 'D', 'L', 'R'] as (Command | null)[]).map(dir => {
+                  const isSelected = s.disabledDirection === dir;
+                  const canDisable = dir === null || hasAnyValidVariant(
+                    s.ageGroup, s.startLevel, effectiveMaxCmds, selectedConfig.keyCount,
+                    s.maxRepConsecutive, dir
+                  );
+                  return (
+                    <button
+                      key={String(dir)}
+                      onClick={() => { if (canDisable || isSelected) set('disabledDirection', dir); }}
+                      disabled={!canDisable && !isSelected}
+                      title={!canDisable ? 'Impossible : aucun plateau solvable sans cette direction' : ''}
+                      className={`flex-1 py-1.5 rounded-lg text-sm font-bold border-2 transition ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : !canDisable
+                            ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed line-through'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      {dir === null ? 'Aucune' : CMD_ARROW[dir]}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Masquage temporel */}

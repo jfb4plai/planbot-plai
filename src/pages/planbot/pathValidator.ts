@@ -145,8 +145,10 @@ export function hasValidSolution(
   effectiveMaxCmds: number,
   keyCount: number,
   maxRepConsecutive: number,
+  disabledCmd: Command | null = null,
 ): boolean {
   type State = readonly [number, number, number, 0 | 1, Command | '', number];
+  const allowedCmds = (['U', 'D', 'L', 'R'] as Command[]).filter(c => c !== disabledCmd);
 
   function stateKey(s: State): string {
     return `${s[0]},${s[1]},${s[2]},${s[3]},${s[4]},${s[5]}`;
@@ -167,7 +169,7 @@ export function hasValidSolution(
 
     if (depth >= effectiveMaxCmds) continue;
 
-    for (const rawCmd of ['U', 'D', 'L', 'R'] as Command[]) {
+    for (const rawCmd of allowedCmds) {
       // Limite de répétitions consécutives
       if (maxRepConsecutive > 0 && rawCmd === lastCmd && repCount >= maxRepConsecutive) continue;
 
