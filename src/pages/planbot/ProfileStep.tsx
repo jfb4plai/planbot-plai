@@ -275,6 +275,27 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
 
             {s.tlMode !== 'off' && (
               <div>
+                <label className={labelCls}>Durée orange</label>
+                <div className="flex gap-2">
+                  {([200, 400, 700] as const).map(ms => (
+                    <button
+                      key={ms}
+                      onClick={() => set('tlOrangeMs', ms)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                        s.tlOrangeMs === ms
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      {ms === 200 ? 'Court (0,2 s)' : ms === 400 ? 'Normal (0,4 s)' : 'Long (0,7 s)'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {s.tlMode !== 'off' && (
+              <div>
                 <label className={labelCls}>Durée fenêtre verte : {s.tlDurationS} s</label>
                 <input
                   type="range"

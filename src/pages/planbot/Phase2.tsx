@@ -99,7 +99,7 @@ export default function Phase2({
       } else {
         lightRef.current = 'orange';
         setLight('orange');
-        timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+        timerRef.current = setTimeout(() => startGreen(handleExpiry), settings.tlOrangeMs);
       }
     }, getRedDuration());
   }, [settings.sound, settings.tlMode, startGreen, getRedDuration]);
@@ -116,7 +116,7 @@ export default function Phase2({
       } else {
         lightRef.current = 'orange';
         setLight('orange');
-        timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+        timerRef.current = setTimeout(() => startGreen(handleExpiry), settings.tlOrangeMs);
       }
     }, getRedDuration());
   }, [handleExpiry, startGreen, getRedDuration, settings.tlMode]);
@@ -161,7 +161,7 @@ export default function Phase2({
         } else {
           lightRef.current = 'orange';
           setLight('orange');
-          timerRef.current = setTimeout(() => startGreen(handleExpiry), 400);
+          timerRef.current = setTimeout(() => startGreen(handleExpiry), settings.tlOrangeMs);
         }
       }, getRedDuration());
     }

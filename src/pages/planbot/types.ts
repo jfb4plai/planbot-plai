@@ -63,6 +63,7 @@ export type PlayerSettings = {
   maxRepConsecutive: number;  // 0 = off, 1-3 = max consecutive same command
   tlMode: TLMode;
   tlDurationS: number;        // 1-5
+  tlOrangeMs: 200 | 400 | 700; // durée de la phase orange en ms
   sound: boolean;
 };
 
@@ -74,6 +75,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   maxRepConsecutive: 0,
   tlMode: 'seq',
   tlDurationS: 3,
+  tlOrangeMs: 400,
   sound: true,
 };
 
