@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabaseClient';
 import AuthStep from './AuthStep';
 import ProfileStep from './ProfileStep';
 import Phase1 from './Phase1';
+import Phase1Direct from './Phase1Direct';
 import ConfidenceStep from './ConfidenceStep';
 import Phase2 from './Phase2';
 import Dashboard from './Dashboard';
@@ -183,7 +184,7 @@ export default function PlanBotPage() {
         />
       )}
 
-      {phase === 'phase1' && grid && settings && config && (
+      {phase === 'phase1' && grid && settings && config && !settings.skipPlanning && (
         <Phase1
           grid={grid}
           level={level}
@@ -191,6 +192,18 @@ export default function PlanBotPage() {
           settings={settings}
           initialScore={0}
           planningTries={0}
+          onValidate={handlePhase1Done}
+          onQuit={quit}
+        />
+      )}
+
+      {phase === 'phase1' && grid && settings && config && settings.skipPlanning && (
+        <Phase1Direct
+          grid={grid}
+          level={level}
+          config={config}
+          settings={settings}
+          initialScore={0}
           onValidate={handlePhase1Done}
           onQuit={quit}
         />

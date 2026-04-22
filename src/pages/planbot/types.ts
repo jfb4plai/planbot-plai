@@ -71,6 +71,7 @@ export type PlayerSettings = {
   memorizeS: number | null;      // null = grille toujours visible ; number = masquage après X s
   disabledDirection: Command | null; // null = toutes directions actives
   verbalization: boolean; // rappel à voix haute avant validation
+  skipPlanning: boolean;  // Mode A : exécution directe sans phase de planification
   sound: boolean;
 };
 
@@ -90,6 +91,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   memorizeS: null,
   disabledDirection: null,
   verbalization: false,
+  skipPlanning: false,
   sound: true,
 };
 
