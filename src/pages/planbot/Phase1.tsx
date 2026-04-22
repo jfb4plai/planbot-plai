@@ -31,7 +31,7 @@ type Props = {
   settings: PlayerSettings;
   initialScore: number;
   planningTries: number;
-  onValidate: (commands: Command[], simSteps: SimStep[], newScore: number, newTries: number, isOptimal: boolean) => void;
+  onValidate: (commands: Command[], simSteps: SimStep[], newScore: number, newTries: number, isOptimal: boolean, perseverations: number) => void;
   onQuit: () => void;
 };
 
@@ -42,6 +42,8 @@ export default function Phase1({
   const [message, setMessage] = useState<string | null>(null);
   const [tries, setTries] = useState(planningTries);
   const [score, setScore] = useState(initialScore);
+  const [failedSequences, setFailedSequences] = useState<string[]>([]);
+  const [perseverationCount, setPerseverationCount] = useState(0);
 
   // ── Timer de planification ─────────────────────────────────────────────────
   function pickTimerDuration(): number | null {
@@ -141,9 +143,18 @@ export default function Phase1({
       const isOptimal = minPathLength !== null && commands.length === minPathLength;
       const newScore = score + 5 + (isOptimal ? 2 : 0);
       setScore(newScore);
-      onValidate(commands, result.simSteps, newScore, newTries, isOptimal);
+      onValidate(commands, result.simSteps, newScore, newTries, isOptimal, perseverationCount);
     } else {
-      setMessage(VALIDATION_MESSAGES[result.reason] ?? 'Essaie encore !');
+      const seqKey = commands.join(',');
+      const isPerseveration = failedSequences.includes(seqKey);
+      if (isPerseveration) {
+        const newCount = perseverationCount + 1;
+        setPerseverationCount(newCount);
+        setMessage('🔁 Tu as déjà essayé exactement cette séquence ! Essaie quelque chose de différent.');
+      } else {
+        setFailedSequences(prev => [...prev, seqKey]);
+        setMessage(VALIDATION_MESSAGES[result.reason] ?? 'Essaie encore !');
+      }
       if (settings.planningTimerMode !== 'off') resetTimer();
     }
   }
@@ -203,6 +214,11 @@ export default function Phase1({
         {minPathLength !== null && (
           <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
             ⭐ Optimal : {minPathLength} cmds (+2 pts)
+          </span>
+        )}
+        {perseverationCount > 0 && (
+          <span className="px-2 py-1 rounded-full bg-rose-100 text-rose-700 font-semibold">
+            🔁 {perseverationCount} persévération{perseverationCount > 1 ? 's' : ''}
           </span>
         )}
         {settings.memorizeS !== null && (

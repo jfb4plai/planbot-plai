@@ -116,6 +116,7 @@ export type SavedSession = {
   level: number;
   score: number;
   planning_tries: number;
+  perseverations: number;
   tl_good: number;
   tl_total: number;
   duration_s: number;

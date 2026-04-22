@@ -26,6 +26,7 @@ export default function PlanBotPage() {
   const [simSteps, setSimSteps] = useState<SimStep[]>([]);
   const [scoreAfterP1, setScoreAfterP1] = useState(0);
   const [planningTries, setPlanningTries] = useState(0);
+  const [perseverations, setPerseverations] = useState(0);
   const [lastSessionId, setLastSessionId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -62,11 +63,12 @@ export default function PlanBotPage() {
     setPhase('phase1');
   }
 
-  function handlePhase1Done(cmds: Command[], steps: SimStep[], newScore: number, newTries: number, _isOptimal: boolean) {
+  function handlePhase1Done(cmds: Command[], steps: SimStep[], newScore: number, newTries: number, _isOptimal: boolean, persCount: number) {
     setCommands(cmds);
     setSimSteps(steps);
     setScoreAfterP1(newScore);
     setPlanningTries(newTries);
+    setPerseverations(persCount);
     setPhase('phase2');
   }
 
@@ -83,6 +85,7 @@ export default function PlanBotPage() {
       level,
       score: result.score,
       planning_tries: planningTries,
+      perseverations: perseverations,
       tl_good: result.tlGood,
       tl_total: result.tlTotal,
       duration_s: result.durationS,
@@ -106,6 +109,7 @@ export default function PlanBotPage() {
     setConfig(null);
     setCommands([]);
     setSimSteps([]);
+    setPerseverations(0);
     setLastSessionId(null);
     setSaveError(null);
   }
