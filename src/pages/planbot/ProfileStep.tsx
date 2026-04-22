@@ -321,6 +321,60 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
               </div>
             )}
 
+            {/* Timer de planification */}
+            <div>
+              <label className={labelCls}>Timer de planification</label>
+              <div className="flex gap-2 mb-2">
+                {(['off', 'fixed', 'random'] as const).map(m => (
+                  <button
+                    key={m}
+                    onClick={() => set('planningTimerMode', m)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                      s.planningTimerMode === m
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                    }`}
+                  >
+                    {m === 'off' ? 'Désactivé' : m === 'fixed' ? 'Fixe' : 'Aléatoire'}
+                  </button>
+                ))}
+              </div>
+              {s.planningTimerMode === 'fixed' && (
+                <div>
+                  <label className={labelCls}>Durée : {s.planningTimerS} s</label>
+                  <input type="range" min={15} max={120} step={5}
+                    value={s.planningTimerS}
+                    onChange={e => set('planningTimerS', Number(e.target.value))}
+                    className="w-full accent-indigo-600"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-0.5">
+                    <span>15 s</span><span>120 s</span>
+                  </div>
+                </div>
+              )}
+              {s.planningTimerMode === 'random' && (
+                <div className="space-y-2">
+                  <div>
+                    <label className={labelCls}>Min : {s.planningTimerMinS} s</label>
+                    <input type="range" min={10} max={60} step={5}
+                      value={s.planningTimerMinS}
+                      onChange={e => set('planningTimerMinS', Math.min(Number(e.target.value), s.planningTimerMaxS - 5))}
+                      className="w-full accent-indigo-600"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Max : {s.planningTimerMaxS} s</label>
+                    <input type="range" min={20} max={120} step={5}
+                      value={s.planningTimerMaxS}
+                      onChange={e => set('planningTimerMaxS', Math.max(Number(e.target.value), s.planningTimerMinS + 5))}
+                      className="w-full accent-indigo-600"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400">Durée tirée aléatoirement entre {s.planningTimerMinS} s et {s.planningTimerMaxS} s à chaque essai</p>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center gap-3">
               <button
                 onClick={() => set('sound', !s.sound)}

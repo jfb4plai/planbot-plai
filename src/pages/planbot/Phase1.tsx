@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Command, GridDef, LevelConfig, PlayerSettings, SimStep } from './types';
 import { CMD_ARROW } from './types';
 import { validatePath, VALIDATION_MESSAGES, wouldViolateRepLimit } from './pathValidator';
@@ -43,6 +43,44 @@ export default function Phase1({
   const [tries, setTries] = useState(planningTries);
   const [score, setScore] = useState(initialScore);
 
+  // ── Timer de planification ─────────────────────────────────────────────────
+  function pickTimerDuration(): number | null {
+    if (settings.planningTimerMode === 'off') return null;
+    if (settings.planningTimerMode === 'fixed') return settings.planningTimerS;
+    const range = settings.planningTimerMaxS - settings.planningTimerMinS;
+    return settings.planningTimerMinS + Math.floor(Math.random() * (range + 1));
+  }
+
+  const [timeLeft, setTimeLeft] = useState<number | null>(() => pickTimerDuration());
+  const [timerExpired, setTimerExpired] = useState(false);
+  const timerExpiredRef = useRef(false);
+
+  function resetTimer() {
+    timerExpiredRef.current = false;
+    setTimerExpired(false);
+    setTimeLeft(pickTimerDuration());
+  }
+
+  useEffect(() => {
+    if (timeLeft === null || timerExpiredRef.current) return;
+    if (timeLeft <= 0) {
+      timerExpiredRef.current = true;
+      setTimerExpired(true);
+      setTries(prev => prev + 1);
+      setScore(prev => Math.max(0, prev - 1));
+      setMessage('⏱ Temps écoulé ! Recommence.');
+      const t = setTimeout(() => {
+        setCommands([]);
+        setMessage(null);
+        resetTimer();
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => setTimeLeft(prev => prev !== null ? prev - 1 : null), 1000);
+    return () => clearTimeout(t);
+  }, [timeLeft, timerExpired]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ─────────────────────────────────────────────────────────────────────────
+
   // 0 = sentinelle "Libre" (aucune limite), null = défaut niveau
   const effectiveMaxCmds: number | null =
     settings.overrideMaxCmds === 0 ? null :
@@ -81,6 +119,7 @@ export default function Phase1({
       onValidate(commands, result.simSteps, newScore, newTries);
     } else {
       setMessage(VALIDATION_MESSAGES[result.reason] ?? 'Essaie encore !');
+      if (settings.planningTimerMode !== 'off') resetTimer();
     }
   }
 
@@ -97,6 +136,15 @@ export default function Phase1({
           <h2 className="text-base font-bold text-gray-800">{config.label}</h2>
         </div>
         <div className="flex items-center gap-3">
+          {timeLeft !== null && (
+            <div className={`text-center px-2 py-1 rounded-lg font-mono font-bold text-sm ${
+              timerExpired ? 'bg-red-100 text-red-700' :
+              timeLeft <= 10 ? 'bg-orange-100 text-orange-700 animate-pulse' :
+              'bg-indigo-50 text-indigo-600'
+            }`}>
+              ⏱ {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
+            </div>
+          )}
           <div className="text-right">
             <div className="text-xl font-bold text-indigo-700">{score} pts</div>
             <div className="text-xs text-gray-400">Essais : {tries}</div>
@@ -200,7 +248,7 @@ export default function Phase1({
         </button>
         <button
           onClick={handleValidate}
-          disabled={commands.length === 0}
+          disabled={commands.length === 0 || timerExpired}
           className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base transition disabled:opacity-40"
         >
           Valider ✓

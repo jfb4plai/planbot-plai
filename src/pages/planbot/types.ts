@@ -64,6 +64,10 @@ export type PlayerSettings = {
   tlMode: TLMode;
   tlTempo: 'slow' | 'medium' | 'fast'; // lent / moyen / rapide — tirage aléatoire dans chaque plage
   tlOrangeMs: 200 | 400 | 700;         // durée de la phase orange en ms
+  planningTimerMode: 'off' | 'fixed' | 'random';
+  planningTimerS: number;    // durée fixe (s), 15–120
+  planningTimerMinS: number; // borne min aléatoire (s), 10–60
+  planningTimerMaxS: number; // borne max aléatoire (s), 20–120
   sound: boolean;
 };
 
@@ -76,6 +80,10 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   tlMode: 'seq',
   tlTempo: 'medium',
   tlOrangeMs: 400,
+  planningTimerMode: 'off',
+  planningTimerS: 60,
+  planningTimerMinS: 20,
+  planningTimerMaxS: 60,
   sound: true,
 };
 
