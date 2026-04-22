@@ -62,20 +62,24 @@ export default function Phase2({
     }
   };
 
-  const getGreenDuration = useCallback((): number => {
-    if (settings.tlMode === 'random') {
-      return (1 + Math.floor(Math.random() * 5)) * 1000;
-    }
-    return settings.tlDurationS * 1000;
-  }, [settings.tlMode, settings.tlDurationS]);
+  // Plages de durée par tempo (ms) — tirage aléatoire à chaque cycle dans les deux modes
+  const TEMPO_RANGES = {
+    slow:   { redMin: 1500, redMax: 3000, greenMin: 3000, greenMax: 5000 },
+    medium: { redMin:  800, redMax: 1500, greenMin: 2000, greenMax: 3000 },
+    fast:   { redMin:  400, redMax:  800, greenMin: 1000, greenMax: 2000 },
+  } as const;
 
-  // En mode aléatoire : rouge 0.5–2.5 s ; sinon 700 ms fixe
+  const randMs = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
+
+  const getGreenDuration = useCallback((): number => {
+    const r = TEMPO_RANGES[settings.tlTempo];
+    return randMs(r.greenMin, r.greenMax);
+  }, [settings.tlTempo]);
+
   const getRedDuration = useCallback((): number => {
-    if (settings.tlMode === 'random') {
-      return 500 + Math.floor(Math.random() * 2000);
-    }
-    return 700;
-  }, [settings.tlMode]);
+    const r = TEMPO_RANGES[settings.tlTempo];
+    return randMs(r.redMin, r.redMax);
+  }, [settings.tlTempo]);
 
   // Lance la phase verte (commune aux deux chemins du cycle aléatoire)
   const startGreen = useCallback((onExpiry: () => void) => {

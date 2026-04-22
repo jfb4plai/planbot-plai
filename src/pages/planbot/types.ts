@@ -62,8 +62,8 @@ export type PlayerSettings = {
   overrideMaxCmds: number | null;  // null = use level default
   maxRepConsecutive: number;  // 0 = off, 1-3 = max consecutive same command
   tlMode: TLMode;
-  tlDurationS: number;        // 1-5
-  tlOrangeMs: 200 | 400 | 700; // durée de la phase orange en ms
+  tlTempo: 'slow' | 'medium' | 'fast'; // lent / moyen / rapide — tirage aléatoire dans chaque plage
+  tlOrangeMs: 200 | 400 | 700;         // durée de la phase orange en ms
   sound: boolean;
 };
 
@@ -74,7 +74,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   overrideMaxCmds: null,
   maxRepConsecutive: 0,
   tlMode: 'seq',
-  tlDurationS: 3,
+  tlTempo: 'medium',
   tlOrangeMs: 400,
   sound: true,
 };

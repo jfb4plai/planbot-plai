@@ -89,7 +89,7 @@ export default function PlanBotPage() {
       note: null,
       cfg_rep_limit: settings.maxRepConsecutive,
       cfg_tl_mode: settings.tlMode,
-      cfg_tl_dur: settings.tlDurationS,
+      cfg_tl_dur: settings.tlTempo === 'slow' ? 1 : settings.tlTempo === 'medium' ? 2 : 3,
       cfg_sound: settings.sound,
     }).select('id').single();
 

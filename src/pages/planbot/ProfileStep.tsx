@@ -296,18 +296,28 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
 
             {s.tlMode !== 'off' && (
               <div>
-                <label className={labelCls}>Durée fenêtre verte : {s.tlDurationS} s</label>
-                <input
-                  type="range"
-                  min={1}
-                  max={5}
-                  value={s.tlDurationS}
-                  onChange={e => set('tlDurationS', Number(e.target.value))}
-                  className="w-full accent-indigo-600"
-                />
-                <div className="flex justify-between text-xs text-gray-400 mt-0.5">
-                  <span>1 s (difficile)</span><span>5 s (facile)</span>
+                <label className={labelCls}>Tempo du feu</label>
+                <div className="flex gap-2">
+                  {([
+                    { value: 'slow',   label: 'Lent',   sub: 'rouge 1,5–3 s / vert 3–5 s' },
+                    { value: 'medium', label: 'Moyen',  sub: 'rouge 0,8–1,5 s / vert 2–3 s' },
+                    { value: 'fast',   label: 'Rapide', sub: 'rouge 0,4–0,8 s / vert 1–2 s' },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => set('tlTempo', opt.value)}
+                      title={opt.sub}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                        s.tlTempo === opt.value
+                          ? 'bg-indigo-600 text-white border-indigo-600'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
+                <p className="text-xs text-gray-400 mt-1">Durées tirées aléatoirement dans chaque plage</p>
               </div>
             )}
 
