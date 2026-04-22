@@ -71,6 +71,16 @@ export default function Dashboard({ initialPlayer, onBack }: Props) {
     return `${Math.round((s.tl_good / s.tl_total) * 100)} %`;
   }
 
+  function confidenceEmoji(c: number | null | undefined): string {
+    if (c === null || c === undefined) return '—';
+    return (['', '😟', '😐', '🙂', '💪'] as const)[c] ?? '—';
+  }
+
+  function persevDisplay(n: number | null | undefined): string {
+    if (!n) return '—';
+    return `🔁 ${n}`;
+  }
+
   const chartMax = sessions.length > 0 ? Math.max(...sessions.map(s => s.score), 1) : 1;
 
   return (
@@ -153,6 +163,29 @@ export default function Dashboard({ initialPlayer, onBack }: Props) {
             </div>
           </div>
 
+          {/* Mini graphe persévérations */}
+          {sessions.some(s => s.perseverations > 0) && (
+            <div className="bg-white border-2 border-rose-100 rounded-2xl p-4">
+              <h3 className="text-sm font-bold text-gray-700 mb-3">🔁 Persévérations par séance</h3>
+              <div className="flex items-end gap-1 h-16">
+                {[...sessions].reverse().map((s, i) => {
+                  const maxP = Math.max(...sessions.map(x => x.perseverations ?? 0), 1);
+                  const h = Math.round(((s.perseverations ?? 0) / maxP) * 56);
+                  return (
+                    <div key={s.id} className="flex flex-col items-center flex-1 min-w-0 gap-1">
+                      <div
+                        className="w-full rounded-t-md bg-rose-400 transition-all"
+                        style={{ height: Math.max(h, (s.perseverations ?? 0) > 0 ? 4 : 0) }}
+                        title={`${s.perseverations ?? 0} persévération(s)`}
+                      />
+                      <span className="text-xs text-gray-400 truncate w-full text-center">{i + 1}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Tableau des séances */}
           <div className="overflow-x-auto rounded-2xl border-2 border-gray-100">
             <table className="w-full text-sm">
@@ -162,6 +195,8 @@ export default function Dashboard({ initialPlayer, onBack }: Props) {
                   <th className="px-3 py-2 text-center font-semibold">Niv.</th>
                   <th className="px-3 py-2 text-center font-semibold">Score</th>
                   <th className="px-3 py-2 text-center font-semibold">Essais plan.</th>
+                  <th className="px-3 py-2 text-center font-semibold">Persév.</th>
+                  <th className="px-3 py-2 text-center font-semibold">Confiance</th>
                   <th className="px-3 py-2 text-center font-semibold">Précision feu</th>
                   <th className="px-3 py-2 text-center font-semibold">Durée</th>
                   <th className="px-3 py-2 text-left font-semibold">Note clinique</th>
@@ -174,6 +209,8 @@ export default function Dashboard({ initialPlayer, onBack }: Props) {
                     <td className="px-3 py-2 text-center font-bold text-indigo-600">{s.level}</td>
                     <td className="px-3 py-2 text-center font-bold">{s.score}</td>
                     <td className="px-3 py-2 text-center">{s.planning_tries}</td>
+                    <td className="px-3 py-2 text-center">{persevDisplay(s.perseverations)}</td>
+                    <td className="px-3 py-2 text-center text-lg">{confidenceEmoji(s.confidence)}</td>
                     <td className="px-3 py-2 text-center">{tlAccuracy(s)}</td>
                     <td className="px-3 py-2 text-center">{s.duration_s} s</td>
                     <td className="px-3 py-2 max-w-xs">
