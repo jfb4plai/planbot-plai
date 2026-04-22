@@ -62,7 +62,7 @@ export default function Phase2({
     }
   };
 
-  // Plages de durée par tempo (ms) — tirage aléatoire à chaque cycle dans les deux modes
+  // Plages de durée par tempo (ms) — durées tirées aléatoirement pour chaque déplacement
   const TEMPO_RANGES = {
     slow:   { redMin: 1500, redMax: 3000, greenMin: 3000, greenMax: 5000 },
     medium: { redMin:  800, redMax: 1500, greenMin: 2000, greenMax: 3000 },
