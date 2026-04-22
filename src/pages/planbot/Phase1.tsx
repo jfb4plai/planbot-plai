@@ -79,6 +79,25 @@ export default function Phase1({
     const t = setTimeout(() => setTimeLeft(prev => prev !== null ? prev - 1 : null), 1000);
     return () => clearTimeout(t);
   }, [timeLeft, timerExpired]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Masquage temporel (mémoire de travail) ────────────────────────────────
+  const [memorizeCountdown, setMemorizeCountdown] = useState<number | null>(settings.memorizeS);
+  const [gridRevealed, setGridRevealed] = useState(true);
+
+  useEffect(() => {
+    if (memorizeCountdown === null || !gridRevealed) return;
+    if (memorizeCountdown <= 0) {
+      setGridRevealed(false);
+      return;
+    }
+    const t = setTimeout(() => setMemorizeCountdown(prev => prev !== null ? prev - 1 : null), 1000);
+    return () => clearTimeout(t);
+  }, [memorizeCountdown, gridRevealed]);
+
+  // Cellule affichée : masque obstacles/objets quand grille cachée (robot toujours visible)
+  function displayCell(cell: string): string {
+    if (gridRevealed) return cell;
+    return cell === 'empty' || cell === 'robot' ? cell : 'empty';
+  }
   // ─────────────────────────────────────────────────────────────────────────
 
   // 0 = sentinelle "Libre" (aucune limite), null = défaut niveau
@@ -170,6 +189,19 @@ export default function Phase1({
             Max {settings.maxRepConsecutive}× même direction
           </span>
         )}
+        {settings.memorizeS !== null && (
+          gridRevealed
+            ? <span className={`px-2 py-1 rounded-full font-semibold ${
+                memorizeCountdown !== null && memorizeCountdown <= 3
+                  ? 'bg-orange-100 text-orange-700 animate-pulse'
+                  : 'bg-teal-100 text-teal-700'
+              }`}>
+                👁 Mémorise : {memorizeCountdown}s
+              </span>
+            : <span className="px-2 py-1 rounded-full bg-gray-200 text-gray-600 font-semibold">
+                🙈 Grille masquée
+              </span>
+        )}
       </div>
 
       {/* Grille */}
@@ -182,15 +214,18 @@ export default function Phase1({
           }}
         >
           {grid.cells.map((row, r) =>
-            row.map((cell, c) => (
-              <div
-                key={`${r}-${c}`}
-                style={{ width: cellSize, height: cellSize }}
-                className={`flex items-center justify-center rounded-lg border-2 border-gray-200 text-2xl ${CELL_BG[cell]}`}
-              >
-                {CELL_EMOJI[cell]}
-              </div>
-            )),
+            row.map((cell, c) => {
+              const shown = displayCell(cell);
+              return (
+                <div
+                  key={`${r}-${c}`}
+                  style={{ width: cellSize, height: cellSize }}
+                  className={`flex items-center justify-center rounded-lg border-2 border-gray-200 text-2xl ${CELL_BG[shown] ?? 'bg-gray-50'}`}
+                >
+                  {CELL_EMOJI[shown] ?? ''}
+                </div>
+              );
+            }),
           )}
         </div>
       </div>

@@ -375,6 +375,46 @@ export default function ProfileStep({ onStart, onDashboard }: Props) {
               )}
             </div>
 
+            {/* Masquage temporel */}
+            <div>
+              <label className={labelCls}>Masquage de la grille (mémoire de travail)</label>
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => set('memorizeS', null)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                    s.memorizeS === null
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                  }`}
+                >
+                  Toujours visible
+                </button>
+                <button
+                  onClick={() => set('memorizeS', s.memorizeS ?? 5)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border-2 transition ${
+                    s.memorizeS !== null
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                  }`}
+                >
+                  Masquer après…
+                </button>
+              </div>
+              {s.memorizeS !== null && (
+                <div>
+                  <label className={labelCls}>Durée visible : {s.memorizeS} s</label>
+                  <input type="range" min={3} max={15} step={1}
+                    value={s.memorizeS}
+                    onChange={e => set('memorizeS', Number(e.target.value))}
+                    className="w-full accent-indigo-600"
+                  />
+                  <div className="flex justify-between text-xs text-gray-400 mt-0.5">
+                    <span>3 s (difficile)</span><span>15 s (facile)</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center gap-3">
               <button
                 onClick={() => set('sound', !s.sound)}
