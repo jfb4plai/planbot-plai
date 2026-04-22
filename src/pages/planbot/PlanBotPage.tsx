@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabaseClient';
 import AuthStep from './AuthStep';
 import ProfileStep from './ProfileStep';
 import Phase1 from './Phase1';
+import ConfidenceStep from './ConfidenceStep';
 import Phase2 from './Phase2';
 import Dashboard from './Dashboard';
 
@@ -27,6 +28,7 @@ export default function PlanBotPage() {
   const [scoreAfterP1, setScoreAfterP1] = useState(0);
   const [planningTries, setPlanningTries] = useState(0);
   const [perseverations, setPerseverations] = useState(0);
+  const [confidenceRating, setConfidenceRating] = useState<number | null>(null);
   const [lastSessionId, setLastSessionId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -69,6 +71,11 @@ export default function PlanBotPage() {
     setScoreAfterP1(newScore);
     setPlanningTries(newTries);
     setPerseverations(persCount);
+    setPhase('confidence');
+  }
+
+  function handleConfidenceRated(rating: number) {
+    setConfidenceRating(rating);
     setPhase('phase2');
   }
 
@@ -86,6 +93,7 @@ export default function PlanBotPage() {
       score: result.score,
       planning_tries: planningTries,
       perseverations: perseverations,
+      confidence: confidenceRating,
       tl_good: result.tlGood,
       tl_total: result.tlTotal,
       duration_s: result.durationS,
@@ -110,6 +118,7 @@ export default function PlanBotPage() {
     setCommands([]);
     setSimSteps([]);
     setPerseverations(0);
+    setConfidenceRating(null);
     setLastSessionId(null);
     setSaveError(null);
   }
@@ -185,6 +194,10 @@ export default function PlanBotPage() {
           onValidate={handlePhase1Done}
           onQuit={quit}
         />
+      )}
+
+      {phase === 'confidence' && (
+        <ConfidenceStep onRate={handleConfidenceRated} />
       )}
 
       {phase === 'phase2' && grid && settings && (

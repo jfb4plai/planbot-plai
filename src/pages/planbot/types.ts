@@ -6,7 +6,7 @@ export const CMD_ARROW: Record<Command, string> = { U: '↑', D: '↓', L: '←'
 export type CellType = 'empty' | 'robot' | 'obstacle' | 'star' | 'key1' | 'key2' | 'modifier';
 
 export type TLMode = 'off' | 'seq' | 'random';
-export type GamePhase = 'profile' | 'phase1' | 'phase2' | 'complete' | 'dashboard';
+export type GamePhase = 'profile' | 'phase1' | 'confidence' | 'phase2' | 'complete' | 'dashboard';
 export type AgeGroup = '6' | '7-10' | '11-13';
 
 export type GridDef = {
@@ -117,6 +117,7 @@ export type SavedSession = {
   score: number;
   planning_tries: number;
   perseverations: number;
+  confidence: number | null;
   tl_good: number;
   tl_total: number;
   duration_s: number;
