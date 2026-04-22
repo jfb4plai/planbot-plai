@@ -297,6 +297,13 @@ export default function Phase1({
         <CmdBtn cmd="R" addCmd={addCmd} cmdFull={cmdFull} commands={commands} settings={settings} />
       </div>
 
+      {/* Verbalisation */}
+      {settings.verbalization && commands.length > 0 && (
+        <div className="bg-violet-50 border-2 border-violet-200 rounded-xl px-4 py-3 text-sm text-violet-800 font-semibold text-center">
+          🗣️ Lis ta séquence à voix haute avant de valider !
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2">
         <button

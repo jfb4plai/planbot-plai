@@ -70,6 +70,7 @@ export type PlayerSettings = {
   planningTimerMaxS: number; // borne max aléatoire (s), 20–120
   memorizeS: number | null;      // null = grille toujours visible ; number = masquage après X s
   disabledDirection: Command | null; // null = toutes directions actives
+  verbalization: boolean; // rappel à voix haute avant validation
   sound: boolean;
 };
 
@@ -88,6 +89,7 @@ export const DEFAULT_SETTINGS: PlayerSettings = {
   planningTimerMaxS: 60,
   memorizeS: null,
   disabledDirection: null,
+  verbalization: false,
   sound: true,
 };
 
