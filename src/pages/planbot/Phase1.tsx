@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Command, GridDef, LevelConfig, PlayerSettings, SimStep } from './types';
 import { CMD_ARROW } from './types';
-import { validatePath, VALIDATION_MESSAGES, wouldViolateRepLimit } from './pathValidator';
+import { computeMinPathLength, validatePath, VALIDATION_MESSAGES, wouldViolateRepLimit } from './pathValidator';
 import { playClick } from './sounds';
 
 const CELL_EMOJI: Record<string, string> = {
@@ -31,7 +31,7 @@ type Props = {
   settings: PlayerSettings;
   initialScore: number;
   planningTries: number;
-  onValidate: (commands: Command[], simSteps: SimStep[], newScore: number, newTries: number) => void;
+  onValidate: (commands: Command[], simSteps: SimStep[], newScore: number, newTries: number, isOptimal: boolean) => void;
   onQuit: () => void;
 };
 
@@ -100,6 +100,11 @@ export default function Phase1({
   }
   // ─────────────────────────────────────────────────────────────────────────
 
+  // Longueur minimale du chemin optimal (pour le bonus +2 pts)
+  const minPathLength = useMemo(() =>
+    computeMinPathLength(grid, config.keyCount, settings.maxRepConsecutive, settings.disabledDirection),
+  [grid, config.keyCount, settings.maxRepConsecutive, settings.disabledDirection]);
+
   // 0 = sentinelle "Libre" (aucune limite), null = défaut niveau
   const effectiveMaxCmds: number | null =
     settings.overrideMaxCmds === 0 ? null :
@@ -133,9 +138,10 @@ export default function Phase1({
     const effectiveConfig = { ...config, maxCmds: effectiveMaxCmds };
     const result = validatePath(grid, commands, effectiveConfig, settings.maxRepConsecutive);
     if (result.ok) {
-      const newScore = score + 5;
+      const isOptimal = minPathLength !== null && commands.length === minPathLength;
+      const newScore = score + 5 + (isOptimal ? 2 : 0);
       setScore(newScore);
-      onValidate(commands, result.simSteps, newScore, newTries);
+      onValidate(commands, result.simSteps, newScore, newTries, isOptimal);
     } else {
       setMessage(VALIDATION_MESSAGES[result.reason] ?? 'Essaie encore !');
       if (settings.planningTimerMode !== 'off') resetTimer();
@@ -192,6 +198,11 @@ export default function Phase1({
         {settings.disabledDirection !== null && (
           <span className="px-2 py-1 rounded-full bg-red-100 text-red-700 font-semibold">
             🚫 {CMD_ARROW[settings.disabledDirection]} désactivé
+          </span>
+        )}
+        {minPathLength !== null && (
+          <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 font-semibold">
+            ⭐ Optimal : {minPathLength} cmds (+2 pts)
           </span>
         )}
         {settings.memorizeS !== null && (

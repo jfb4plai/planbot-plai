@@ -2,6 +2,82 @@
 
 import type { Command, GridDef, LevelConfig, SimStep, ValidationResult } from './types';
 
+/**
+ * BFS — retourne la longueur minimale du chemin valide (en respectant maxRepConsecutive
+ * et disabledCmd), ou null si aucune solution n'existe.
+ */
+export function computeMinPathLength(
+  grid: GridDef,
+  keyCount: number,
+  maxRepConsecutive: number,
+  disabledCmd: Command | null = null,
+): number | null {
+  type State = readonly [number, number, number, 0 | 1, Command | '', number];
+  const allowedCmds = (['U', 'D', 'L', 'R'] as Command[]).filter(c => c !== disabledCmd);
+  const MAX_DEPTH = 50;
+
+  function stateKey(s: State): string {
+    return `${s[0]},${s[1]},${s[2]},${s[3]},${s[4]},${s[5]}`;
+  }
+
+  const startState: State = [grid.robotPos[0], grid.robotPos[1], 0, 0, '', 0];
+  const allKeys = (1 << keyCount) - 1;
+  const visited = new Set<string>();
+  const queue: [State, number][] = [[startState, 0]];
+
+  while (queue.length > 0) {
+    const [state, depth] = queue.shift()!;
+    const [row, col, keysMask, modActive, lastCmd, repCount] = state;
+
+    const key = stateKey(state);
+    if (visited.has(key)) continue;
+    visited.add(key);
+
+    if (depth >= MAX_DEPTH) continue;
+
+    for (const rawCmd of allowedCmds) {
+      if (maxRepConsecutive > 0 && rawCmd === lastCmd && repCount >= maxRepConsecutive) continue;
+
+      const cmd = applyFlip(rawCmd, modActive === 1);
+      const [dr, dc] = DELTAS[cmd];
+      const newRow = row + dr;
+      const newCol = col + dc;
+
+      if (newRow < 0 || newRow >= grid.size || newCol < 0 || newCol >= grid.size) continue;
+
+      const cell = grid.cells[newRow][newCol];
+      if (cell === 'obstacle') continue;
+
+      const newMod = (modActive === 1 || cell === 'modifier') ? 1 : 0 as 0 | 1;
+
+      let newKeysMask = keysMask;
+      for (let k = 0; k < keyCount; k++) {
+        if (grid.keyPositions[k]) {
+          const [kr, kc] = grid.keyPositions[k];
+          if (newRow === kr && newCol === kc) {
+            if (k === 0 || (newKeysMask & (1 << (k - 1)))) {
+              newKeysMask |= (1 << k);
+            }
+          }
+        }
+      }
+
+      const newRep = rawCmd === lastCmd ? repCount + 1 : 1;
+
+      if (newRow === grid.starPos[0] && newCol === grid.starPos[1] && newKeysMask === allKeys) {
+        return depth + 1;
+      }
+
+      const newState: State = [newRow, newCol, newKeysMask, newMod, rawCmd, newRep];
+      if (!visited.has(stateKey(newState))) {
+        queue.push([newState, depth + 1]);
+      }
+    }
+  }
+
+  return null;
+}
+
 const DELTAS: Record<Command, [number, number]> = {
   U: [-1, 0],
   D: [1, 0],

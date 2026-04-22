@@ -62,7 +62,7 @@ export default function PlanBotPage() {
     setPhase('phase1');
   }
 
-  function handlePhase1Done(cmds: Command[], steps: SimStep[], newScore: number, newTries: number) {
+  function handlePhase1Done(cmds: Command[], steps: SimStep[], newScore: number, newTries: number, _isOptimal: boolean) {
     setCommands(cmds);
     setSimSteps(steps);
     setScoreAfterP1(newScore);
