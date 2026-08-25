@@ -18,6 +18,7 @@ const PORTAIL_URL = 'https://portail-plai.vercel.app';
 export default function PlanBotPage() {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   const [phase, setPhase] = useState<GamePhase>('profile');
   const [settings, setSettings] = useState<PlayerSettings | null>(null);
@@ -39,7 +40,8 @@ export default function PlanBotPage() {
       setUser(data.session?.user ?? null);
       setAuthReady(true);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
@@ -133,11 +135,11 @@ export default function PlanBotPage() {
     );
   }
 
-  // Non connecté → AuthStep
-  if (!user) {
+  // Non connecté, ou lien de réinitialisation de mot de passe → AuthStep
+  if (!user || passwordRecovery) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
-        <AuthStep onAuth={() => {}} />
+        <AuthStep onAuth={() => {}} passwordRecovery={passwordRecovery} onPasswordUpdated={() => setPasswordRecovery(false)} />
       </div>
     );
   }
